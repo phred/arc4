@@ -3,7 +3,7 @@
 USING: kernel arrays sequences math accessors combinators
     tools.continuations ;
 
-IN: rc4.key-schedule
+IN: arc4.key-schedule
 
 CONSTANT: key-schedule-length 256
 

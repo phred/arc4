@@ -2,10 +2,11 @@
 USING: kernel math grouping math.parser 
         syntax lexer strings.parser namespaces sequences ;
 
-IN: rc4.tests.utils
+IN: arc4.tests.utils
 
-: keystream-from-hexstring ( str -- array )
-    2 group [ 16 base> ] { } map-as ;
+: byte-array-from-string ( str -- array )
+    2 group [ hex> ] { } map-as ;
 
-SYNTAX: HEX" lexer get skip-blank parse-string 2 group [ hex> ] { } map-as suffix! ;
+SYNTAX: HEXBYTE" lexer get skip-blank parse-string
+                 byte-array-from-string suffix! ;
 

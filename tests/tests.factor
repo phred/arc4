@@ -2,10 +2,11 @@
 ! See http://factorcode.org/license.txt for BSD license.
 
 USING: kernel math tools.test sorting sequences fry
-        arrays grouping math.parser rc4 rc4.key-schedule
+        arrays grouping math.parser arc4 arc4.key-schedule
         tools.continuations accessors
-        syntax lexer strings.parser namespaces rc4.tests.utils ;
-IN: rc4.tests
+        namespaces arc4.tests.utils ;
+
+IN: arc4.tests
 
 #! make sure scheduling the key doesn't duplicate any elements of the sequence
 (init-vector) 1array [ "abcdefghijklmnop" schedule-key natural-sort ] unit-test
@@ -16,12 +17,22 @@ TUPLE: test-vector key keystream plaintext ciphertext ;
 #! Test vectors from http://en.wikipedia.org/wiki/RC4#Test_vectors
 : test-vectors ( -- triples )
     {   #! { key keystream plaintext ciphertext }
-        T{ test-vector f "Key"      HEX" eb9f7781b734ca72a719" 
-           "Plaintext" HEX" BBF316E8D940AF0AD3" }
-        T{ test-vector f "Wiki"     HEX" 6044db6d41b7" 
-           "pedia"  HEX" 1021BF0420" }
-        T{ test-vector f "Secret"   HEX" 04d46b053ca87b59" 
-           "Attack at dawn"  HEX" 45A01F645FC35B383552544B9BF5" }
+        T{ test-vector 
+           { key "Key" }
+           { keystream HEXBYTE" eb9f7781b734ca72a719" }
+           { plaintext "Plaintext" }
+           { ciphertext HEXBYTE" BBF316E8D940AF0AD3" } }
+
+        T{ test-vector
+           { key "Wiki" }
+           { keystream HEXBYTE" 6044db6d41b7" }
+           { plaintext "pedia" }
+           { ciphertext HEXBYTE" 1021BF0420" } }
+        T{ test-vector
+           { key "Secret" }
+           { keystream HEXBYTE" 04d46b053ca87b59" }
+           { plaintext "Attack at dawn" }
+           { ciphertext HEXBYTE" 45A01F645FC35B383552544B9BF5" } }
     } ;
 
 
@@ -46,7 +57,7 @@ TUPLE: test-vector key keystream plaintext ciphertext ;
     [
         [ keystream>> ]
         [ make-keystream-test ] bi
-        2array
+        [ unit-test ] 2curry
     ] map ;
 
-keystream-tests [ unit-test ] each
+keystream-tests [ call ] each

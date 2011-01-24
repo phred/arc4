@@ -1,9 +1,9 @@
 ! Copyright (C) 2011 Fred Alger
 ! See http://factorcode.org/license.txt for BSD license.
 USING: kernel arrays sequences math fry accessors combinators
-       rc4.key-schedule ;
+       arc4.key-schedule ;
 
-IN: rc4
+IN: arc4
 
 TUPLE: arc4 key key-schedule ndx0 ndx1 ;
 : <arc4> ( key -- arc4 ) dup schedule-key 0 0 \ arc4 boa ;
