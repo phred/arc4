@@ -58,3 +58,6 @@ M: arc4 current-byte
 
 M: arc4 next
   advance-stream-counters rotate-schedule current-byte ;
+
+: cipher ( str arc4 -- ciphertext )
+    [ next bitxor ] curry map ; inline

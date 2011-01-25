@@ -4,7 +4,7 @@
 USING: kernel math tools.test sorting sequences fry
         arrays grouping math.parser arc4 arc4.key-schedule
         tools.continuations accessors
-        namespaces arc4.tests.utils ;
+        namespaces arc4.tests.utils byte-arrays ;
 
 IN: arc4.tests
 
@@ -72,5 +72,23 @@ TUPLE: test-vector key keystream plaintext ciphertext ;
         [ unit-test ] 2curry
     ] map ;
 
+
 keystream-tests [ call ] each
 
+: cipher-test-procedure ( key keystream -- quot )
+    '[ _ _ <arc4> cipher >byte-array ] ;
+
+: make-cipher-test ( test-vector -- quot )
+      [ plaintext>> ]
+      [ key>> ] bi
+      cipher-test-procedure ;
+
+: cipher-tests ( -- tests )
+    test-vectors 
+    [
+        [ ciphertext>> 1array ]
+        [ make-cipher-test ] bi
+        [ unit-test ] 2curry
+    ] map ;
+
+cipher-tests [ call ] each
