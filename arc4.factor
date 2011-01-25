@@ -5,44 +5,56 @@ USING: kernel arrays sequences math fry accessors combinators
 
 IN: arc4
 
-TUPLE: arc4 key key-schedule ndx0 ndx1 ;
-: <arc4> ( key -- arc4 ) dup schedule-key 0 0 \ arc4 boa ;
-
+TUPLE: arc4 key key-schedule counters ;
 
 GENERIC: current-byte ( arc4 -- byte )
-GENERIC: next-key-byte ( arc4 -- byte )
+GENERIC: next ( arc4 -- byte )
 
-: advance-ndx0 ( arc4 -- )
-    [ 1 + key-schedule-length mod ] change-ndx0 drop ;
+: <arc4> ( key -- arc4 ) dup schedule-key { 0 0 } \ arc4 boa ;
 
-: advance-ndx1 ( arc4 -- )
-    [ [ ndx0>> ] [ key-schedule>> ] bi nth ] keep
-    [ + key-schedule-length mod ] change-ndx1 drop ;
+: key-schedule-at ( arc4 -- quot )
+    key-schedule>> [ nth ] curry ; inline
+
+: current-schedule ( arc4 -- schedule )
+   [ counters>> ]
+   [ key-schedule-at ] bi map ;
+
+: next-schedule ( arc4 -- schedule )
+    [ counters>> first 1 + ] [ key-schedule>> ] bi nth ;
+
+
+: advance-counter ( value counter-ndx schedule -- value' )
+   over 0 =
+   [ 2drop 1 + ]
+   [ nip + ] if key-schedule-length mod ;
     
-: advance-stream-counters ( arc4 -- )
-    [ advance-ndx0 ]
-    [ advance-ndx1 ] bi ;
+: next-stream-counters ( counters schedule -- counters' )
+   [ advance-counter ] curry map-index ;
 
-: rotate-schedule ( arc4 -- )
-    [ ndx0>> ]
-    [ ndx1>> ]
-    [ key-schedule>> ] tri
-    exchange ;
+: advance-stream-counters ( arc4 -- arc4 )
+   [ next-schedule [ next-stream-counters ] curry ] keep swap change-counters ;
+
+: rotate-schedule ( arc4 -- arc4 )
+   [ [ counters>> first2 ] [ key-schedule>> ] bi exchange ] keep ;
+
+
+: on-first-round ( arc4 -- ? )
+   counters>> first 0 = ;
+
+: first-round-error ( -- * ) 
+   "undefined result, call next-key-byte at least once" throw ;
+
+: check-first-round ( arc4 -- )
+    on-first-round [ first-round-error ] when ;
+
+: current-stream-index ( arc4 -- ndx )
+    current-schedule sum key-schedule-length mod ;
+
 
 M: arc4 current-byte
-    {
-      [ ndx0>> ]
-      [ key-schedule>> ]
-      [ ndx1>> ]
-      [ key-schedule>> ]
-      [ key-schedule>> ]
-      [ ndx0>> ]
-    } cleave
-    0 >
-    [ [ nth [ nth ] dip + key-schedule-length mod ] dip nth ]
-    [ "undefined result, call next-key-byte at least once" throw ] if ;
+  [ current-stream-index ] 
+  [ key-schedule>> ]
+  [ check-first-round ] tri nth ;
 
-M: arc4 next-key-byte
-  [ advance-stream-counters ]
-  [ rotate-schedule ]
-  [ current-byte ] tri ;
+M: arc4 next
+  advance-stream-counters rotate-schedule current-byte ;

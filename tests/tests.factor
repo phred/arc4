@@ -44,8 +44,20 @@ TUPLE: test-vector key keystream plaintext ciphertext ;
 [ 58 ] [ { HEX: 9f HEX: 9f HEX: 77 } "Key" 54 1 increment-schedule-counter ] unit-test
 [ 42 ] [ { HEX: 77 HEX: 9f HEX: 77 } "Key" 58 2 increment-schedule-counter ] unit-test
 
+
+[ 1 ] [ 0 0 35 advance-counter ] unit-test
+[ 2 ] [ 1 0 35 advance-counter ] unit-test
+[ 35 ] [ 0 1 35  advance-counter ] unit-test
+[ 35 ] [ 256 1 35 advance-counter ] unit-test
+
+[ { 0 0 } ] [ "Key" <arc4> counters>> ] unit-test
+[ t ] [ "Key" <arc4> [ current-schedule first ] [ key-schedule>> first ] bi = ] unit-test
+
+
+[ "test" <arc4> current-byte ] must-fail
+
 : keystream-test-procedure ( key keystream -- quot )
-    '[ _ <arc4> _ length [ [ next-key-byte ] keep ] times drop ] ;
+    '[ _ <arc4> _ length [ [ next ] keep ] times drop ] ;
 
 : make-keystream-test ( test-vector -- quot )
       [ key>> ]
@@ -61,3 +73,4 @@ TUPLE: test-vector key keystream plaintext ciphertext ;
     ] map ;
 
 keystream-tests [ call ] each
+
