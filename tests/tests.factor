@@ -2,9 +2,10 @@
 ! See http://factorcode.org/license.txt for BSD license.
 
 USING: kernel math tools.test sorting sequences fry
-        arrays grouping math.parser arc4 arc4.key-schedule
-        tools.continuations accessors
-        namespaces arc4.tests.utils byte-arrays ;
+        arrays grouping math.parser tools.continuations
+        accessors io io.streams.string namespaces byte-arrays
+        arc4.tests.utils
+        arc4 arc4.key-schedule arc4.reader ;
 
 IN: arc4.tests
 
@@ -92,3 +93,21 @@ keystream-tests [ call ] each
     ] map ;
 
 cipher-tests [ call ] each
+
+: reader-test-procedure ( key keystream -- quot )
+    '[ { } _ <arc4> _ <string-reader> <arc4-reader> stream-read-until ] ;
+
+: make-reader-test ( test-vector -- quot )
+      [ key>> ]
+      [ plaintext>> ] bi
+      reader-test-procedure ;
+
+: reader-tests ( -- tests )
+    test-vectors 
+    [
+        [ ciphertext>> f 2array ]
+        [ make-reader-test ] bi
+        [ unit-test ] 2curry
+    ] map ;
+
+reader-tests [ call ] each

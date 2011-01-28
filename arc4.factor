@@ -1,6 +1,6 @@
 ! Copyright (C) 2011 Fred Alger
 ! See http://factorcode.org/license.txt for BSD license.
-USING: kernel arrays sequences math fry accessors combinators
+USING: kernel arrays sequences math accessors combinators
        arc4.key-schedule ;
 
 IN: arc4
